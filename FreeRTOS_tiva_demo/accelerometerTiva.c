@@ -14,14 +14,19 @@ extern QueueHandle_t xSocketQueue;
 extern QueueHandle_t xLightQueue;
 extern QueueHandle_t xAccelerometerQueue;
 
+#define ACCELEROMETER_TASK_WAIT_TIME   pdMS_TO_TICKS( 2000 )
+
 // Function for accelerometer task
 void accelerometerTask(void *pvParameters)
 {
+    tiva_msgStruct_t accelerometerHBMsg;
+    UARTprintf("\r\n In the accelerometer task");
     for (;;)
     {
-        if(ulTaskNotifyTake( pdTRUE, 0) != 0)
+        if(ulTaskNotifyTake( pdTRUE, ACCELEROMETER_TASK_WAIT_TIME) != 0)
         {
-            UARTprintf("\r\n Accelerometer():: Received HB request");
+            sendHB(TIVA_ACCELEROMETER_TASK_ID, &accelerometerHBMsg);
+            UARTprintf("\r\n Accelerometer():: ?????Received HB request");
             //*TBD* send HB
         }
     }

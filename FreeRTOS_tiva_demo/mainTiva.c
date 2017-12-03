@@ -5,13 +5,9 @@
  *      Author: Saritha
  */
 
-
-
-#include "mainTiva.h"
 #include "genericTiva.h"
-#include <timers.h>
+#include "mainTiva.h"
 
-#define mainONE_SHOT_TIMER_PERIOD pdMS_TO_TICKS( 3333 )
 #define mainAUTO_RELOAD_TIMER_PERIOD pdMS_TO_TICKS( 2000 )
 
 //Queue handles
@@ -20,12 +16,29 @@ QueueHandle_t xSocketQueue;
 QueueHandle_t xLightQueue;
 QueueHandle_t xAccelerometerQueue;
 
+/* Handles for the tasks create by main(). */
+extern TaskHandle_t xMainTaskHandle;
+extern TaskHandle_t xSocketTaskHandle;
+extern TaskHandle_t xLightTaskHandle;
+extern TaskHandle_t xAccelerometerTaskHandle;
+
+bool socketFlag = true;
+bool lightFlag = true;
+bool accelerometerFlag = true;
+
 // Function for main task
 void mainTask(void *pvParameters)
 {
     TimerHandle_t xMyTimer;
+    BaseType_t xMainStatus;
+    tiva_msgStruct_t mainReceivedmsg;
+    BaseType_t xTimerStarted;
+    size_t msgCount = 0;
+    UARTprintf("\r\n In the main task");
+
+    const TickType_t xMainTicksToWait = mainAUTO_RELOAD_TIMER_PERIOD;
     xMyTimer = xTimerCreate("mySWTimer",mainAUTO_RELOAD_TIMER_PERIOD,pdTRUE,0,myTimerCallBack );
-    if(xmyTimer == NULL)
+    if(xMyTimer == NULL)
         return;
     xMainQueue = xQueueCreate( 30, sizeof( int32_t ) );    /* Create Main Queue */
     if(xMainQueue == NULL)
@@ -40,9 +53,41 @@ void mainTask(void *pvParameters)
     if(xAccelerometerQueue == NULL)
         return;
 
+    if( xMyTimer != NULL )
+    {
+        xTimerStarted = xTimerStart( xMyTimer, 0 );
+        if(xTimerStarted == pdPASS )
+            UARTprintf("\r\n main():: Timer Started");
+        else
+            UARTprintf("\r\n main():: Timer Start failed");
+    }
+
     for (;;)
     {
-
+        if(ulTaskNotifyTake(pdFALSE, 0) != 0)
+        {
+            UARTprintf("\r\n main():: !!!!!!!!!Received Timer notification");
+            //*TBD*
+            while((msgCount = uxQueueMessagesWaiting(xMainQueue)) != 0)
+            {
+                xMainStatus = xQueueReceive( xMainQueue, (tiva_msgStruct_t *)&mainReceivedmsg, xMainTicksToWait );
+                if( xMainStatus == pdPASS )
+                    //*TBD* send logs
+                    UARTprintf("\r\n main():: @@@@@@@@@@xQueueReceive Success");
+                else
+                    //*TBD* send logs
+                    UARTprintf("\r\n main():: ##########xQueueReceive Failure");
+                if(mainReceivedmsg.tivaMsgId == TIVA_MSGID_HB_RESP)
+                {
+                    if(mainReceivedmsg.tivaMsgSrcTask == TIVA_SOCKET_TASK_ID)
+                        socketFlag = true;
+                    else if(mainReceivedmsg.tivaMsgSrcTask == TIVA_LIGHT_TASK_ID)
+                        lightFlag = true;
+                    else if(mainReceivedmsg.tivaMsgSrcTask == TIVA_ACCELEROMETER_TASK_ID)
+                        accelerometerFlag = true;
+                }
+            }
+        }
     }
 }
 
@@ -51,11 +96,40 @@ static void myTimerCallBack( TimerHandle_t xTimer )
 {
     //TickType_t xTimeNow;
     //xTimeNow = uxTaskGetTickCount();    /* Obtain the current tick count. */
+
     /* Output a string to show the time at which the callback was executed. */
     UARTprintf("\r\n Received Timer signal");
-    xTaskNotifyGive( xSocketQueue );
-    xTaskNotifyGive( xLightQueue );
-    xTaskNotifyGive( xAccelerometerQueue );
-    /*TBD* send over socket "HeartBeats received
+
+    xTaskNotifyGive( xSocketTaskHandle );
+    xTaskNotifyGive( xLightTaskHandle );
+    xTaskNotifyGive( xAccelerometerTaskHandle );
+    xTaskNotifyGive( xMainTaskHandle );
+    //*TBD* send over socket "HeartBeats received
     //ulCallCount++;
+    UARTprintf("\r\n $$$$$$$$$Gave Notify signals from Timer callback");
+    if((socketFlag == true) && (lightFlag == true) && (accelerometerFlag == true))
+    {
+        UARTprintf("\r\n %%%%%%Received HeartBeats");
+        socketFlag = false;
+        lightFlag = false;
+        accelerometerFlag = false;
+    }
+    else
+    {
+        if(socketFlag == false)
+        {
+            UARTprintf("\r\n ^^^^^^^^^^Failed HeartBeats from socket task");
+            //*TBD* send error logs
+        }
+        if(lightFlag == false)
+        {
+            UARTprintf("\r\n &&&&Failed HeartBeats from Light task");
+            //*TBD* send error logs
+        }
+        if(accelerometerFlag == false)
+        {
+            UARTprintf("\r\n ****Failed HeartBeats from accelerometer task");
+            //*TBD* send error logs
+        }
+    }
 }

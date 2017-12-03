@@ -17,11 +17,18 @@
 #include "lightTiva.h"
 #include "accelerometerTiva.h"
 
+/* Handles for the tasks create by main(). */
+TaskHandle_t xMainTaskHandle = NULL;
+TaskHandle_t xSocketTaskHandle = NULL;
+TaskHandle_t xLightTaskHandle = NULL;
+TaskHandle_t xAccelerometerTaskHandle = NULL;
+
 // Main function
 int main(void)
 {
     // Initialize system clock to 120 MHz
     uint32_t output_clock_rate_hz;
+    BaseType_t xStatus;
     output_clock_rate_hz = ROM_SysCtlClockFreqSet(
                                (SYSCTL_XTAL_25MHZ | SYSCTL_OSC_MAIN |
                                 SYSCTL_USE_PLL | SYSCTL_CFG_VCO_480),
@@ -33,15 +40,22 @@ int main(void)
 
     UARTStdioConfig(0, 57600, SYSTEM_CLOCK);
 
+    UARTprintf("\r\n Starting the execution");
+
     // Create tasks
-    xTaskCreate(mainTask, (const portCHAR *)"main", configMINIMAL_STACK_SIZE, NULL, 6, NULL);
-
-    xTaskCreate(socketTask, (const portCHAR *)"socket", configMINIMAL_STACK_SIZE, NULL, 5, NULL);
-
-    xTaskCreate(lightTask, (const portCHAR *)"light", configMINIMAL_STACK_SIZE, NULL, 4, NULL);
-
-    xTaskCreate(accelerometerTask, (const portCHAR *)"accelerometer", configMINIMAL_STACK_SIZE, NULL, 3, NULL);
-
+    xStatus = xTaskCreate(mainTask, (const portCHAR *)"main", configMINIMAL_STACK_SIZE, NULL, 3, &xMainTaskHandle);
+    if(xStatus != pdPASS)
+        return 0;
+    xStatus = xTaskCreate(socketTask, (const portCHAR *)"socket", configMINIMAL_STACK_SIZE, NULL, 6, &xSocketTaskHandle);
+    if(xStatus != pdPASS)
+        return 0;
+    xStatus = xTaskCreate(lightTask, (const portCHAR *)"light", configMINIMAL_STACK_SIZE, NULL, 5, &xLightTaskHandle);
+    if(xStatus != pdPASS)
+        return 0;
+    xStatus = xTaskCreate(accelerometerTask, (const portCHAR *)"accelerometer", configMINIMAL_STACK_SIZE, NULL, 4, &xAccelerometerTaskHandle);
+    if(xStatus != pdPASS)
+        return 0;
+    //vTaskDelay(1000);
     vTaskStartScheduler();
 
     return 0;
