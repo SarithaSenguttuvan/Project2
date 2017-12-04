@@ -24,11 +24,15 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
+#include <limits.h>
 
 #define TIVA_MAIN_TASK_ID 6
 #define TIVA_SOCKET_TASK_ID 7
 #define TIVA_LIGHT_TASK_ID 8
 #define TIVA_ACCELEROMETER_TASK_ID 9
+
+#define SET_BIT (1)
+#define HB_REQ_BIT (1)
 
 /* Enum for type of message i.e., Message ID on TIVA */
 typedef enum

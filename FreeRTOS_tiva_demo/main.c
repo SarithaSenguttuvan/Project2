@@ -16,18 +16,22 @@
 #include "socketTiva.h"
 #include "lightTiva.h"
 #include "accelerometerTiva.h"
+#include "I2C_LightTiva.h"
 
 /* Handles for the tasks create by main(). */
 TaskHandle_t xMainTaskHandle = NULL;
 TaskHandle_t xSocketTaskHandle = NULL;
 TaskHandle_t xLightTaskHandle = NULL;
 TaskHandle_t xAccelerometerTaskHandle = NULL;
+//TaskHandle_t xI2cLightTaskHandle = NULL;
+
+uint32_t output_clock_rate_hz;
 
 // Main function
 int main(void)
 {
     // Initialize system clock to 120 MHz
-    uint32_t output_clock_rate_hz;
+
     BaseType_t xStatus;
     output_clock_rate_hz = ROM_SysCtlClockFreqSet(
                                (SYSCTL_XTAL_25MHZ | SYSCTL_OSC_MAIN |
@@ -43,9 +47,13 @@ int main(void)
     UARTprintf("\r\n Starting the execution");
 
     // Create tasks
-    xStatus = xTaskCreate(mainTask, (const portCHAR *)"main", configMINIMAL_STACK_SIZE, NULL, 3, &xMainTaskHandle);
+    /*
+    xStatus = xTaskCreate(I2C_Light, (const portCHAR *)"i2cLight", configMINIMAL_STACK_SIZE, NULL, 6, &xI2cLightTaskHandle);
     if(xStatus != pdPASS)
         return 0;
+    */
+
+#if 1
     xStatus = xTaskCreate(socketTask, (const portCHAR *)"socket", configMINIMAL_STACK_SIZE, NULL, 6, &xSocketTaskHandle);
     if(xStatus != pdPASS)
         return 0;
@@ -53,6 +61,10 @@ int main(void)
     if(xStatus != pdPASS)
         return 0;
     xStatus = xTaskCreate(accelerometerTask, (const portCHAR *)"accelerometer", configMINIMAL_STACK_SIZE, NULL, 4, &xAccelerometerTaskHandle);
+    if(xStatus != pdPASS)
+        return 0;
+#endif
+    xStatus = xTaskCreate(mainTask, (const portCHAR *)"main", configMINIMAL_STACK_SIZE, NULL, 3, &xMainTaskHandle);
     if(xStatus != pdPASS)
         return 0;
     //vTaskDelay(1000);

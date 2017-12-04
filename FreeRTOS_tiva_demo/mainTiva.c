@@ -21,6 +21,7 @@ extern TaskHandle_t xMainTaskHandle;
 extern TaskHandle_t xSocketTaskHandle;
 extern TaskHandle_t xLightTaskHandle;
 extern TaskHandle_t xAccelerometerTaskHandle;
+//extern TaskHandle_t xI2cLightTaskHandle;
 
 bool socketFlag = true;
 bool lightFlag = true;
@@ -99,13 +100,20 @@ static void myTimerCallBack( TimerHandle_t xTimer )
 
     /* Output a string to show the time at which the callback was executed. */
     UARTprintf("\r\n Received Timer signal");
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    /*
+    if((xTaskNotifyFromISR(xI2cLightTaskHandle, 1, eSetBits, &xHigherPriorityTaskWoken) != pdPASS))
+        return;*/
+#if 1
+    if((xTaskNotifyFromISR(xSocketTaskHandle, 1, eSetBits, &xHigherPriorityTaskWoken) != pdPASS))
+        return;
+    if((xTaskNotifyFromISR(xLightTaskHandle, 1, eSetBits, &xHigherPriorityTaskWoken) != pdPASS))
+        return;
+    if((xTaskNotifyFromISR(xAccelerometerTaskHandle, 1, eSetBits, &xHigherPriorityTaskWoken) != pdPASS))
+        return;
+    if((xTaskNotifyFromISR(xMainTaskHandle, 1, eSetBits, &xHigherPriorityTaskWoken) != pdPASS))
+        return;
 
-    xTaskNotifyGive( xSocketTaskHandle );
-    xTaskNotifyGive( xLightTaskHandle );
-    xTaskNotifyGive( xAccelerometerTaskHandle );
-    xTaskNotifyGive( xMainTaskHandle );
-    //*TBD* send over socket "HeartBeats received
-    //ulCallCount++;
     UARTprintf("\r\n $$$$$$$$$Gave Notify signals from Timer callback");
     if((socketFlag == true) && (lightFlag == true) && (accelerometerFlag == true))
     {
@@ -132,4 +140,6 @@ static void myTimerCallBack( TimerHandle_t xTimer )
             //*TBD* send error logs
         }
     }
+#endif
 }
+

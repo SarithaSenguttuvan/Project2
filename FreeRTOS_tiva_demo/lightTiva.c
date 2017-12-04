@@ -7,6 +7,7 @@
 
 #include "lightTiva.h"
 #include "genericTiva.h"
+#include "I2C_LightTiva.h"
 
 //Queue handles
 extern QueueHandle_t xMainQueue;
@@ -21,13 +22,31 @@ void lightTask(void *pvParameters)
 {
     UARTprintf("\r\n In the Light task");
     tiva_msgStruct_t lightHBMsg;
+    uint32_t lightNotificationValue = 0;
+
+    bool test_ambience = false;
+    uint8_t power_value = 0;
+    i2cLightSetup();
+    write_control_reg(I2C_CONTROL_REG_POWER);   /* Write to the control register for powering the device */
+    read_data(I2C_CONTROL_REG, &power_value, ONE_BYTE);     /* Read and verify the control register value */
+
     for (;;)
     {
-        if(ulTaskNotifyTake( pdTRUE, LIGHT_TASK_WAIT_TIME) != 0)
+        if(xTaskNotifyWait( 0, ULONG_MAX, &lightNotificationValue, portMAX_DELAY) != pdFALSE)
         {
-            sendHB(TIVA_LIGHT_TASK_ID, &lightHBMsg);
-            UARTprintf("\r\n Light():: ?????Received HB request");
-            //*TBD* send HB
+            if((lightNotificationValue & HB_REQ_BIT) == SET_BIT)
+            {
+                sendHB(TIVA_LIGHT_TASK_ID, &lightHBMsg);
+                light_dark(&test_ambience);     /* API to verify the current ambience */
+                if(test_ambience == false)
+                    GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, 1);       /* If dark, LED on */
+                else
+                    GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, 0);       /* If light, LED off */
+            }
+        }
+        else
+        {
+            UARTprintf("\r\n Light():: HB request receive error");
         }
     }
 }

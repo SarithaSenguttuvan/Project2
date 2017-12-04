@@ -20,14 +20,23 @@ extern QueueHandle_t xAccelerometerQueue;
 void accelerometerTask(void *pvParameters)
 {
     tiva_msgStruct_t accelerometerHBMsg;
+    uint32_t accelerometerNotificationValue = 0;
     UARTprintf("\r\n In the accelerometer task");
     for (;;)
     {
-        if(ulTaskNotifyTake( pdTRUE, ACCELEROMETER_TASK_WAIT_TIME) != 0)
+        if(xTaskNotifyWait( 0, ULONG_MAX, &accelerometerNotificationValue, portMAX_DELAY) != pdFALSE)
         {
-            sendHB(TIVA_ACCELEROMETER_TASK_ID, &accelerometerHBMsg);
-            UARTprintf("\r\n Accelerometer():: ?????Received HB request");
-            //*TBD* send HB
+            if((accelerometerNotificationValue & HB_REQ_BIT) == SET_BIT)
+            {
+                sendHB(TIVA_ACCELEROMETER_TASK_ID, &accelerometerHBMsg);
+                UARTprintf("\r\n Accelerometer():: ?????Received HB request");
+                //*TBD* send HB
+                //xSocketStatus = xQueueSendToBack( xMainQueue, &socketHBMsg, 0 );
+            }
+        }
+        else
+        {
+            UARTprintf("\r\n Accelerometer():: HB request receive error");
         }
     }
 }
