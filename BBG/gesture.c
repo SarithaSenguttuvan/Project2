@@ -12,6 +12,7 @@
 
 #include "generic.h"
 #include "gesture.h"
+#include "apds_proximity.h"
 
 extern bool sigHandle;
 mqd_t gesture_qdes_log;
@@ -22,6 +23,7 @@ void *gestureTaskFunc(void *arg)
 	int8_t rc = 0;	
 	int8_t n = 0;	
 	int32_t recvSig = 0; 
+	uint8_t pdata_value = 0; 		/* Proximity sensor value */
 
 	mqd_t gesture_qdes_main;
 	mqd_t gesture_qdes_socket;
@@ -47,6 +49,20 @@ void *gestureTaskFunc(void *arg)
     	printf("gesture()::log queue open error is %d\n", errno);
     }
 
+    /* Proximity sensor setup */
+    if(proximity_setup() == I2C_SUCCESS)
+	{
+		printf("Gesture:: Configured I2C\n");
+	}
+	else
+	{
+		printf("Gesture:: Error in configuring I2C\n");
+	}
+	
+	write_control_value(CONTROL_REG_VAL);			//Setting the PGAIN value. when set to 0 got the pdata as 22, But wen set as 0x0C got the output as 0xF0 and more
+	write_pulse_len_count_value(PULSE_LEN_REG_VAL);  //setting the PPLEN value to 32us
+	write_enable_value(ENABLE_PON_PEN);			// Enable PON and PEN 
+
 
     blockSignals();
 
@@ -65,6 +81,17 @@ void *gestureTaskFunc(void *arg)
 			// *TBD* send heartbeat
 			printf("gesture()::Received HB req\n");     	 	//Remove  
 			send_heartBeat(GESTURE_TASK_ID, HB_gesture, gesture_qdes_main);
+			 
+			if((read_pdata_reg(&pdata_value)) == I2C_SUCCESS)
+			{
+				printf("The pdata_value reg value is %x\n",pdata_value);
+			}
+			else
+			{
+				printf("Error in reading pdata_value value\n");
+			}
+			
+			//read pdata
 		}
 		else
 		{	

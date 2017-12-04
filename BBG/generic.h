@@ -28,6 +28,7 @@
 #include "log.h"
 
 
+
 /* Enum for type of message i.e., Message ID */
 typedef enum
 {
