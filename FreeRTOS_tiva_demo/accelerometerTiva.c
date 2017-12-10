@@ -7,6 +7,7 @@
 
 #include "accelerometerTiva.h"
 #include "genericTiva.h"
+#include "I2C_AccTiva.h"
 
 //Queue handles
 extern QueueHandle_t xMainQueue;
@@ -21,7 +22,14 @@ void accelerometerTask(void *pvParameters)
 {
     tiva_msgStruct_t accelerometerHBMsg;
     uint32_t accelerometerNotificationValue = 0;
+    uint8_t acc_read_data = 0;
     UARTprintf("\r\n In the accelerometer task");
+    i2cAccSetup();
+    read_data_acc(0x0D, &acc_read_data, ONE_BYTE);
+    read_data_acc(I2C_ACC_CONTROL_REG1, &acc_read_data, ONE_BYTE);
+    write_control1_reg_acc(I2C_ACC_CONTROL_REG1_VAL);      //reset to 0 - def value
+    read_data_acc(I2C_ACC_CONTROL_REG1, &acc_read_data, ONE_BYTE);
+    UARTprintf("\r\n The ID value is ");
     for (;;)
     {
         if(xTaskNotifyWait( 0, ULONG_MAX, &accelerometerNotificationValue, portMAX_DELAY) != pdFALSE)

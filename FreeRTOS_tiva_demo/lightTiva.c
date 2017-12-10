@@ -27,8 +27,10 @@ void lightTask(void *pvParameters)
     bool test_ambience = false;
     uint8_t power_value = 0;
     i2cLightSetup();
+    read_data(I2C_ID_REG, &power_value, ONE_BYTE);     /* Read and verify the control register value */
+    read_data(I2C_CONTROL_REG, &power_value, ONE_BYTE);
     write_control_reg(I2C_CONTROL_REG_POWER);   /* Write to the control register for powering the device */
-    read_data(I2C_CONTROL_REG, &power_value, ONE_BYTE);     /* Read and verify the control register value */
+
 
     for (;;)
     {
