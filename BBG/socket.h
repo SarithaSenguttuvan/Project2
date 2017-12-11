@@ -32,4 +32,6 @@ void *socketTaskFunc(void *arg);
  */
 void send_log_socket(char * msg, LOGGER_level socketLogLevel, msgStruct_t *socketMsgPacket);
 
+void makeMsg(msgStruct_t *socketMsgPacket, msgid_t msgID, char* msg, LOGGER_level levelLog);
+
 #endif

@@ -264,7 +264,12 @@ int main(int argc, char const *argv[])
 						sprintf(logPayloadBuff, "ERROR from source %d", read_queue->msgSrcTask); 
                         send_log_main(logPayloadBuff, LOG_ERROR, mainTaskLogMsg);
 						raise(SIGINT); /* TBD LED */ 
-					}								
+					}
+                    else if(read_queue->msgId == TIVA_MSGID_ERROR)
+                    {
+                        printf("main::Received error from TIVA\n");
+                        //LED glow
+                    }                    								
 				}
 			}while(n != EAGAIN);
 			n = 0;

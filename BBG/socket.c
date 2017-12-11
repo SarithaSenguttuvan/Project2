@@ -39,7 +39,7 @@ void *socketTaskFunc(void *arg)
 	struct sockaddr_in serv_addr;
 	int flags = 0;
 	bool connection = false;
-	char buffer[1024] = {0};
+	char buffer[1024] = "LightSensorInitialized$";
 
 	mqd_t socket_qdes_main;
 	mqd_t socket_qdes_socket;
@@ -48,7 +48,8 @@ void *socketTaskFunc(void *arg)
 
 	msgStruct_t *read_socket_msg_queue = (msgStruct_t *)malloc(sizeof(msgStruct_t));
 	msgStruct_t *HB_socket = (msgStruct_t *)malloc(sizeof(msgStruct_t));
-	msgStruct_t *socketTaskLogMsg = (msgStruct_t *)malloc(sizeof(msgStruct_t)); 
+	msgStruct_t *socketTaskLogMsg = (msgStruct_t *)malloc(sizeof(msgStruct_t));
+	msgStruct_t *TivaMsg = (msgStruct_t *)malloc(sizeof(msgStruct_t)); 
 	msgStruct_t rec_msg;
 	rec_msg.logLevel = LOG_NONE; 
 
@@ -135,13 +136,15 @@ void *socketTaskFunc(void *arg)
 			// *TBD* send heartbeat
 			printf("socket()::Received HB req\n");     	 	//Remove  
 			send_heartBeat(SOCKET_TASK_ID,HB_socket, socket_qdes_main);
+			connection = true; //Remove
 			if(connection == true)
 			{
-				ret = read( bbg_serv_sd , buffer, 1024);
+				//ret = read( bbg_serv_sd , buffer, 1024);	//Remove comment
 				if(ret == -1)
         			printf("socket():: Error %d in reading from socket\n", errno); 
 
         		char *msgField = strtok(buffer, TIVA_DELIMITER);
+        		printf("msgField is %s\n",msgField);
 			    while(msgField != NULL)
 			    {
 			    	#if 0
@@ -164,12 +167,46 @@ void *socketTaskFunc(void *arg)
 				        //rec_msg.tivadata = 0;
 				    }
 				    #endif
-
+				    printf("msgField is %s\n",msgField);
+			    	if(!(strcmp(msgField, "light")))
+			    	{
+			    		//send light alert
+			    		makeMsg(TivaMsg, TIVA_MSGID_LIGHT_ALERT, "Ambience changed", LOG_WARN);
+			    		send_log_socket("Ambience changed", LOG_WARN, socketTaskLogMsg);
+			    	}
+			    	else if(!(strcmp(msgField, "accelerometer")))
+			    	{
+			    		//send acc alert
+			    		makeMsg(TivaMsg, TIVA_MSGID_ACC_ALERT, "Door opened", LOG_WARN);
+			    		send_log_socket("Door opened", LOG_WARN, socketTaskLogMsg);			    		
+			    	}
+			    	else if(!(strcmp(msgField, "LightSensorInitialized")))
+			    	{
+			    		//send acc alert
+			    		makeMsg(TivaMsg, TIVA_MSGID_INITIALIZED, "I2C sensor Initialized", LOG_INFO);
+			    		send_log_socket("LightSensorInitialized", LOG_INFO, socketTaskLogMsg);			    		
+			    	}
+			    	else if(!(strcmp(msgField, "AccSensorInitialized")))
+			    	{
+			    		//send acc alert
+			    		makeMsg(TivaMsg, TIVA_MSGID_INITIALIZED, "I2C sensor Initialized", LOG_INFO);
+			    		send_log_socket("AccSensorInitialized", LOG_INFO, socketTaskLogMsg);			    		
+			    	}			    				    	
+			    	else if(!(strcmp(msgField, "error")))
+			    	{
+			    		//send err alert
+			    		makeMsg(TivaMsg, TIVA_MSGID_ERROR, "Tiva error", LOG_ERROR);
+			    		send_log_socket("Tiva error", LOG_ERROR, socketTaskLogMsg);	
+						if(mq_send(socket_qdes_main, (char *)TivaMsg, sizeof(msgStruct_t), 0) == -1) 		/* Send heartbeat to main task */
+					    {
+					    	printf ("sendTivaError::Error no %d\n", errno);
+					    }
+					    else
+					    	printf("sendTivaError::Error sent\n"); 
+			     	}			    	
 				    msgField = strtok(NULL, TIVA_DELIMITER);
 			    }
 			}
-
-
 		}
 		else
 		{
@@ -266,4 +303,14 @@ void *socketTaskFunc(void *arg)
 void send_log_socket(char * msg, LOGGER_level socketLogLevel, msgStruct_t *socketMsgPacket)
 {
     send_log(SOCKET_TASK_ID, socketLogLevel, msg, socketMsgPacket, socket_qdes_log);    
+}
+
+void makeMsg(msgStruct_t *socketMsgPacket, msgid_t msgID, char* msg, LOGGER_level levelLog)
+{
+	socketMsgPacket->msgId = msgID;
+	socketMsgPacket->msgSrcTask = SOCKET_TASK_ID;
+	socketMsgPacket->msgPayload = msg;
+	socketMsgPacket->msgPayloadLen = strlen(msg);
+	socketMsgPacket->logLevel = levelLog;
+	socketMsgPacket->int_data = 0;
 }
