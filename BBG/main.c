@@ -15,7 +15,6 @@
 #include <sys/stat.h>
 #include <time.h>
 #include "socket.h"
-#include "decision.h"
 #include "log.h"
 #include "gesture.h"
 
@@ -27,7 +26,6 @@ mqd_t qdes_logTask;
 /* Queue attributes */
 struct mq_attr main_queue_attr;
 struct mq_attr socket_queue_attr;
-struct mq_attr decision_queue_attr;
 struct mq_attr log_queue_attr;
 
 /* Defining my owm handler to handle the system signals */
@@ -39,7 +37,6 @@ void my_handler(int signum)
         sigHandle = true;
         pthread_kill(pthread_self(), SIGTIMER);
         pthread_kill(socketTask, SIGHBSOCKET);
-        pthread_kill(decisionTask, SIGHBDECISION);
         pthread_kill(gestureTask, SIGHBGESTURE);
         pthread_kill(logTask, SIGHBLOG);		
     }
@@ -54,13 +51,11 @@ int main(int argc, char const *argv[])
 	uint8_t taskID;
 
 	bool socket_flag = true;
-	bool decision_flag = true;
 	bool log_flag = true;
 	bool gesture_flag = true;
 
 	mqd_t qdes_mainTask;
 	mqd_t qdes_socketTask;
-	mqd_t qdes_decisionTask;
 	mqd_t qdes_gestureTask;
 	
 	file_name = argv[1];
@@ -84,7 +79,6 @@ int main(int argc, char const *argv[])
     /* Message and Log packets */
 	msgStruct_t *read_queue = (msgStruct_t *)malloc(sizeof(msgStruct_t));
 	msgStruct_t *mainTaskLogMsg = (msgStruct_t *)malloc(sizeof(msgStruct_t)); 
-    log_t *mainLog = (log_t *)malloc(sizeof(log_t));
 
     char logPayloadBuff[200];
     
@@ -125,7 +119,7 @@ int main(int argc, char const *argv[])
     	printf("main::socket queue open error is %d\n", errno);
     } 
 	printf("main::socket queue opened\n");
-
+#if 0
     /* Decision task message queue config and create */ 
 	decision_queue_attr.mq_maxmsg = 30;
 	decision_queue_attr.mq_msgsize = sizeof(msgStruct_t);
@@ -134,6 +128,7 @@ int main(int argc, char const *argv[])
     	printf("main::Decision queue open error is %d\n", errno);
     } 
 	printf("main::Decision queue opened\n");
+#endif
 
 
     /* Log task message queue config and create */ 
@@ -146,8 +141,7 @@ int main(int argc, char const *argv[])
 	printf("main::Log queue opened\n");
 
     /* Initialising the thread attributes */
-    pthread_attr_init(&socketTask_attr);
-    pthread_attr_init(&decisionTask_attr);	
+    pthread_attr_init(&socketTask_attr);	
     pthread_attr_init(&logTask_attr);
     pthread_attr_init(&gestureTask_attr);
 
@@ -159,14 +153,15 @@ int main(int argc, char const *argv[])
         printf("main::pthread_create() socket task error, rc is %d\n", rc); 
         exit(-1);
     }
-
+#if 0
     rc = pthread_create(&decisionTask, &decisionTask_attr, decisionTaskFunc, NULL); /* Create Decision thread  */
     if(rc) 
     {
         printf("main::pthread_create() decision task error, rc is %d\n", rc); 
         exit(-1);
     }
-
+#endif
+    
     rc = pthread_create(&logTask, &logTask_attr, logTaskFunc, NULL);  		/* Create log thread  */
     if(rc) 
     {
@@ -183,8 +178,7 @@ int main(int argc, char const *argv[])
 
 	sleep(2); 		/* Sleep for the threads to get created */
 
-    sprintf(logPayloadBuff, "Main task initialized"); 
-    send_log_main(logPayloadBuff, LOG_INIT, mainLog, mainTaskLogMsg);
+    send_log_main("Main task initialized", LOG_INIT, mainTaskLogMsg);
 
 	/* Start the Timer */
     if (timer_settime(timerid, 0, &its, NULL) == -1)
@@ -198,19 +192,19 @@ int main(int argc, char const *argv[])
         if(recvSig == SIGTIMER)			/* If timer elapses */
         {        	  
         	printf("main()::Received SIGTIMER\n");     	 	//Remove      	
-       		if(socket_flag == true && decision_flag == true && log_flag == true && gesture_flag == true) /* If heartbeats received from all tasks */
+       		if(socket_flag == true && log_flag == true && gesture_flag == true) /* If heartbeats received from all tasks */
             {
             	printf("main()::Received HBs\n");     	 	//Remove  
                 socket_flag = false;
-                decision_flag = false;
                 log_flag = false;
                 gesture_flag = false;
                 pthread_kill(socketTask, SIGHBSOCKET);
-                pthread_kill(decisionTask, SIGHBDECISION);
+                //pthread_kill(decisionTask, SIGHBDECISION);
                 pthread_kill(logTask, SIGHBLOG); 
-                pthread_kill(gestureTask, SIGHBGESTURE);  
-                sprintf(logPayloadBuff, "Received Heartbeats"); 
-                send_log_main(logPayloadBuff, LOG_INFO, mainLog, mainTaskLogMsg);
+                pthread_kill(gestureTask, SIGHBGESTURE); 
+                printf("main()::After received HBs\n"); 
+                 
+                send_log_main("Received Heartbeats", LOG_INFO, mainTaskLogMsg);
             }
         	else					/* If heartbeats not received */
             {
@@ -218,11 +212,6 @@ int main(int argc, char const *argv[])
                 {
                     taskID = SOCKET_TASK_ID;
                     printf("HB not received from socket task\n");
-                }
-                if(decision_flag == false)
-                {
-                    taskID = DECISION_TASK_ID;
-                    printf("HB not received from decision task\n");
                 }            
                 if(log_flag == false)
                 {
@@ -236,7 +225,7 @@ int main(int argc, char const *argv[])
                 }
                 printf("main()::Received faulty HBs\n"); 	//Remove
 				sprintf(logPayloadBuff, "ERROR from source %d", taskID); 
-                send_log_main(logPayloadBuff, LOG_ERROR, mainLog, mainTaskLogMsg);
+                send_log_main(logPayloadBuff, LOG_ERROR, mainTaskLogMsg);
                 //*TBD* wait for log to be sent
                 //raise(SIGINT);
             }
@@ -264,8 +253,6 @@ int main(int argc, char const *argv[])
 						printf("main::HB MSG from Source ID is %d\n",(read_queue->msgSrcTask));
 						if(read_queue->msgSrcTask == SOCKET_TASK_ID)
 							socket_flag = true;
-						else if(read_queue->msgSrcTask == DECISION_TASK_ID)
-							decision_flag = true;
 						else if(read_queue->msgSrcTask == LOG_TASK_ID)
 							log_flag = true;							
 						else if(read_queue->msgSrcTask == GESTURE_TASK_ID)
@@ -275,7 +262,7 @@ int main(int argc, char const *argv[])
 					{
 						printf("main::Received error message from source ID %d\n", read_queue->msgSrcTask);
 						sprintf(logPayloadBuff, "ERROR from source %d", read_queue->msgSrcTask); 
-                        send_log_main(logPayloadBuff, LOG_ERROR, mainLog, mainTaskLogMsg);
+                        send_log_main(logPayloadBuff, LOG_ERROR, mainTaskLogMsg);
 						raise(SIGINT); /* TBD LED */ 
 					}								
 				}
@@ -289,17 +276,11 @@ int main(int argc, char const *argv[])
 	/* Free all the dynamic memory */
 	free(read_queue);
 	free(mainTaskLogMsg);
-	free(mainLog);
 
     if(pthread_join(socketTask, NULL) == 0)      /* Wait until Socket thread has completed execution*/
        printf("Socket task done\n");
     else
-       printf("Socket task Error\n"); 
-
-    if(pthread_join(decisionTask, NULL) == 0)      /* Wait until decision thread has completed execution*/
-       printf("Decision task done\n");
-    else
-       printf("Decision task Error\n"); 
+       printf("Socket task Error\n");  
 
     if(pthread_join(logTask, NULL) == 0)      /* Wait until log thread has completed execution*/
        printf("Log task done\n");
@@ -321,11 +302,6 @@ int main(int argc, char const *argv[])
         printf("main(): Error closing socket queue %d\n", errno);
     }
  
-    if (mq_close (qdes_decisionTask) == -1) 
-    {
-        printf("main(): Error closing decision queue %d\n", errno);
-    }
- 
     if (mq_close (qdes_logTask) == -1) 
     {
         printf("main(): Error closing log queue %d\n", errno);
@@ -342,11 +318,6 @@ int main(int argc, char const *argv[])
         printf("main(): Error unlinking socket queue %d\n", errno);
     }  
 
-    if (mq_unlink (DECISION_TASK_MQ_NAME) == -1) 
-    {
-        printf("main(): Error unlinking decision queue %d\n", errno);
-    }
-
     if (mq_unlink (LOG_TASK_MQ_NAME) == -1) 
     {
         printf("ERROR No: %d Unable to unlink the log queue \n", errno);
@@ -356,13 +327,7 @@ int main(int argc, char const *argv[])
 	return 0;
 }
 
-void send_log_main(char * msg, LOGGER_level mainLogLevel, log_t *mainlogPacket, msgStruct_t *mainMsgPacket)
+void send_log_main(char * msg, LOGGER_level mainLogLevel, msgStruct_t *mainMsgPacket)
 {
-    char mainLogBuff[200];
-  	mainlogPacket->logLevel = mainLogLevel;
-	mainlogPacket->log_timestamp = time(NULL);
-	
-	sprintf(mainLogBuff, "Log level: %d, Time: %d, Log: %s",  mainlogPacket->logLevel, mainlogPacket->log_timestamp, msg);
-	mainlogPacket->logPayload = mainLogBuff;
-	send_log(MAIN_TASK_ID, mainlogPacket, mainMsgPacket, qdes_logTask);
+    send_log(MAIN_TASK_ID, mainLogLevel, msg, mainMsgPacket, qdes_logTask);    
 }

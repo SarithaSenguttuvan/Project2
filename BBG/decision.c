@@ -64,7 +64,7 @@ void *decisionTaskFunc(void *arg)
     }
 
     blockSignals();
-
+    printf("Decision(): Before while\n");
 	while(!sigHandle)
 	{
 		recvSig = unblockOnSignal(DECISION_TASK_ID); 		/* unblock on SIGDECISION */ 

@@ -30,10 +30,12 @@ void *gestureTaskFunc(void *arg)
 
 	msgStruct_t *read_log_msg_queue = (msgStruct_t *)malloc(sizeof(msgStruct_t));
 	msgStruct_t *HB_gesture = (msgStruct_t *)malloc(sizeof(msgStruct_t));
-	msgStruct_t *gestureTaskLogMsg = (msgStruct_t *)malloc(sizeof(msgStruct_t)); 
-    log_t *gestureLog = (log_t *)malloc(sizeof(log_t));
 
-    char logPayloadBuff[200];	
+	/* Gesture notification packet */
+    msgStruct_t *pdata_struct = (msgStruct_t *)malloc(sizeof(msgStruct_t));
+	pdata_struct->msgId = MSGID_PROX_NOTIFY;
+	pdata_struct->msgSrcTask = GESTURE_TASK_ID;
+		
 	if((gesture_qdes_main = mq_open(MAIN_TASK_MQ_NAME, O_NONBLOCK | O_WRONLY)) == (mqd_t)-1)  /* open the main task queue */
 	{
     	printf("gesture()::main queue open error is %d\n", errno);
@@ -63,23 +65,15 @@ void *gestureTaskFunc(void *arg)
 	write_pulse_len_count_value(PULSE_LEN_REG_VAL);  //setting the PPLEN value to 32us
 	write_enable_value(ENABLE_PON_PEN);			// Enable PON and PEN 
 
-
+	send_log_gesture("Proximity Sensor initialized", LOG_INIT, read_log_msg_queue);
     blockSignals();
-
+    printf("Gesture(): Before while\n");
 	while(!sigHandle)
 	{
-		/* if gesture value send to socket task*/
-		/* if HB_req send send HB */
-		/*if(read_log_msg_queue->msgId == MSGID_HB_REQ)												
-			{
-				// *TBD* send_heartBeat(LIGHT_TASK_ID,HB_main, qdes_loc_lightMainQueue);	
-			}*/
-			
 		recvSig = unblockOnSignal(GESTURE_TASK_ID); 		/* unblock on SIGDECISION */ 
 		if(recvSig == SIGHBGESTURE)
 		{
-			// *TBD* send heartbeat
-			printf("gesture()::Received HB req\n");     	 	//Remove  
+			printf("gesture()::Received HB req\n");     	 	
 			send_heartBeat(GESTURE_TASK_ID, HB_gesture, gesture_qdes_main);
 			 
 			if((read_pdata_reg(&pdata_value)) == I2C_SUCCESS)
@@ -91,19 +85,27 @@ void *gestureTaskFunc(void *arg)
 				printf("Error in reading pdata_value value\n");
 			}
 			
-			//read pdata
-		}
-		else
-		{	
-			
+			//pdata_value = 25; 			//TBD Dummy pdata value
+
+			pdata_struct->int_data = pdata_value;
+			if((pdata_value) > PROX_THRESHOLD)
+			{
+				if(mq_send(gesture_qdes_socket, (char *)pdata_struct, sizeof(msgStruct_t), 0) == -1) 		/* Send heartbeat to main task */
+				{
+					printf ("Gesture::Error in sending the pdata value, Error no %d, from task\n", errno);
+				}
+				else
+				{
+					printf("Gesture::Sent pdata value\n");
+				}	
+				send_log_gesture("Near Object detected", LOG_INFO, read_log_msg_queue);
+			}
 		}
 	}
 	printf("gesture()::Terminating signal received\n");
 	/* Free memory */
 	free(read_log_msg_queue);
 	free(HB_gesture);
-	free(gestureTaskLogMsg);
-	free(gestureLog);
 	
 	/* close all the message queues */
     if (mq_close (gesture_qdes_main) == -1) 
@@ -127,13 +129,7 @@ void *gestureTaskFunc(void *arg)
 	pthread_exit(NULL);
 }
 
-void send_log_gesture(char * msg, LOGGER_level gestureLogLevel, log_t *gesturelogPacket, msgStruct_t *gestureMsgPacket)
+void send_log_gesture(char * msg, LOGGER_level gestureLogLevel, msgStruct_t *gestureMsgPacket)
 {
-    char gestureLogBuff[200];
-  	gesturelogPacket->logLevel = gestureLogLevel;
-	gesturelogPacket->log_timestamp = time(NULL);
-	
-	sprintf(gestureLogBuff, "Log level: %d, Time: %d, Log: %s",  gesturelogPacket->logLevel, gesturelogPacket->log_timestamp, (char *)gesturelogPacket->logPayload);
-	gesturelogPacket->logPayload = gestureLogBuff;
-	send_log(MAIN_TASK_ID, gesturelogPacket, gestureMsgPacket, gesture_qdes_log);
+	send_log(GESTURE_TASK_ID, gestureLogLevel, msg, gestureMsgPacket, gesture_qdes_log);	
 }

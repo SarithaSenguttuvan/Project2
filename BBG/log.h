@@ -18,6 +18,7 @@
 /* Enum for the logger level */
 typedef enum
 {	
+	LOG_NONE,
 	LOG_FATAL,
 	LOG_ERROR,
 	LOG_DEBUG,

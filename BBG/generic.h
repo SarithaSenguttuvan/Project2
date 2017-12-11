@@ -28,7 +28,6 @@
 #include "log.h"
 
 
-
 /* Enum for type of message i.e., Message ID */
 typedef enum
 {
@@ -42,7 +41,10 @@ typedef enum
 	MSGID_LOGMSG,
 	MSGID_SCKT_DATA,
 	MSGID_TIVA_ALERT,
-	MSGID_ERROR
+	MSGID_PROX_NOTIFY,
+	MSGID_ERROR,
+	TIVA_MSID_ACC_ALERT,
+    TIVA_MSGID_ACCELEROMETER_DATA
 }msgid_t;
 
 /* Structure for a message */
@@ -51,7 +53,9 @@ typedef struct
 	msgid_t msgId;
 	uint8_t msgSrcTask;				/* Source Task ID */
 	size_t msgPayloadLen;			/* Msg length  */
-	void * msgPayload; 				/* Msg associated data */
+	LOGGER_level logLevel;
+	int int_data;
+	char * msgPayload; 				/* Msg associated data */
 }msgStruct_t;
 
 /* Queue names */
@@ -119,7 +123,7 @@ uint8_t send_heartBeat(int8_t srcTaskId, msgStruct_t *HB_main, mqd_t mq_des_hb_r
  * @return 
  *      uint8_t
  */
-uint8_t send_log(uint8_t srcTaskId, log_t * logPacket, msgStruct_t *msg, mqd_t msg_qdes);		//Frame the message of type msgStruct_t in this function
+uint8_t send_log(uint8_t srcTaskId, LOGGER_level LogLevel, char* logMsg, msgStruct_t *msg, mqd_t msg_qdes);		//Frame the message of type msgStruct_t in this function
 
 
 

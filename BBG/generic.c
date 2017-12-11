@@ -25,6 +25,7 @@ void blockSignals()
 	sigaddset(&globalMask_set, SIGLOG);
 	sigaddset(&globalMask_set, SIGGESTURE);	
 	sigaddset(&globalMask_set, SIGHBSOCKET);
+	sigaddset(&globalMask_set, SIGSOCKET);	
 	sigaddset(&globalMask_set, SIGHBDECISION);
 	sigaddset(&globalMask_set, SIGHBLOG);
 	sigaddset(&globalMask_set, SIGHBGESTURE);
@@ -92,6 +93,7 @@ uint8_t send_heartBeat(int8_t srcTaskId, msgStruct_t *HB_main, mqd_t mq_des_hb_r
 
 	HB_main->msgId = MSGID_HB_RESP;
 	HB_main->msgSrcTask = srcTaskId;
+	HB_main->logLevel = LOG_NONE;
 	HB_main->msgPayload = NULL;
 	HB_main->msgPayloadLen = 0;
            
@@ -105,12 +107,13 @@ uint8_t send_heartBeat(int8_t srcTaskId, msgStruct_t *HB_main, mqd_t mq_des_hb_r
 }
 
 /* Send log to the log task */
-uint8_t send_log(uint8_t srcTaskId, log_t* logPacket, msgStruct_t *msg, mqd_t msg_qdes)   
+uint8_t send_log(uint8_t srcTaskId, LOGGER_level LogLevel, char* logMsg, msgStruct_t *msg, mqd_t msg_qdes)   
 {
 	msg->msgId = MSGID_LOGMSG;
 	msg->msgSrcTask = srcTaskId;
-	msg->msgPayload = logPacket->logPayload;
-	msg->msgPayloadLen = strlen(logPacket->logPayload);
+	msg->logLevel = LogLevel;
+	msg->msgPayload = logMsg;
+	msg->msgPayloadLen = strlen(logMsg);
 
     if(mq_send(msg_qdes, (char *)msg, sizeof(msgStruct_t), 0) == -1) 
     {

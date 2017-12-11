@@ -60,7 +60,7 @@ void *logTaskFunc(void *arg)
     {
       printf("log():: Unable to open the file\n"); 
     }
-
+    printf("Log(): Before while\n");
 	while(!sigHandle)
 	{
 		recvSig = unblockOnSignal(LOG_TASK_ID); 		/* unblock on SIGLOG */ 
@@ -93,9 +93,11 @@ void *logTaskFunc(void *arg)
 					{
 						// * TBD* send log
 						printf("log():: Writing to the file\n");
-						fprintf(fp, "\nMsg Id: %d ",read_log_msg_queue->msgId);
-						fprintf(fp, "Src Task Id: %d ",read_log_msg_queue->msgSrcTask);
-						fprintf(fp, "Payload: %s ",(char *)(read_log_msg_queue->msgPayload));
+						fprintf(fp, "\nMsg Id: %d | ",read_log_msg_queue->msgId);
+						fprintf(fp, "Log level: %d | ",read_log_msg_queue->logLevel);
+						fprintf(fp, "Src Task Id: %d | ",read_log_msg_queue->msgSrcTask);
+						fprintf(fp, "Payload: %s | ",(char *)(read_log_msg_queue->msgPayload));
+						fprintf(fp, "Time: %d | ", time(NULL));
 						//fclose(fp); // Remove
 					}				
 				}

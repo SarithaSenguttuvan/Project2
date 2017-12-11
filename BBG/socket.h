@@ -30,7 +30,6 @@ void *socketTaskFunc(void *arg);
  * @return 
  *      uint8_t
  */
-void send_log_socket(char * msg, LOGGER_level socketLogLevel, log_t *socketlogPacket, msgStruct_t *socketMsgPacket);
-
+void send_log_socket(char * msg, LOGGER_level socketLogLevel, msgStruct_t *socketMsgPacket);
 
 #endif

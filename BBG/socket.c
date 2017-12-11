@@ -13,6 +13,15 @@
 #include "generic.h"
 #include "socket.h"
 
+#include <sys/socket.h> 
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+
+#define PORT (8000)
+#define TIVA_DELIMITER ("$")
 extern bool sigHandle;
 mqd_t socket_qdes_log;
 	
@@ -22,7 +31,15 @@ void *socketTaskFunc(void *arg)
 	char dummyAmbience[20] = "Day";
 	int8_t rc = 0;	
 	int8_t n = 0;	
-	int32_t recvSig = 0; 
+	int32_t recvSig = 0;
+
+	/* Sockets */ 
+	int bbg_serv_sd = 0;
+	int ret = 0;
+	struct sockaddr_in serv_addr;
+	int flags = 0;
+	bool connection = false;
+	char buffer[1024] = {0};
 
 	mqd_t socket_qdes_main;
 	mqd_t socket_qdes_socket;
@@ -32,7 +49,8 @@ void *socketTaskFunc(void *arg)
 	msgStruct_t *read_socket_msg_queue = (msgStruct_t *)malloc(sizeof(msgStruct_t));
 	msgStruct_t *HB_socket = (msgStruct_t *)malloc(sizeof(msgStruct_t));
 	msgStruct_t *socketTaskLogMsg = (msgStruct_t *)malloc(sizeof(msgStruct_t)); 
-    log_t *socketLog = (log_t *)malloc(sizeof(log_t));
+	msgStruct_t rec_msg;
+	rec_msg.logLevel = LOG_NONE; 
 
     char logPayloadBuff[200];
 
@@ -50,12 +68,12 @@ void *socketTaskFunc(void *arg)
 	{
     	printf("socket()::socket queue open error is %d\n", errno);
     }
-
+#if 0
 	if((socket_qdes_decision = mq_open(DECISION_TASK_MQ_NAME, O_NONBLOCK | O_WRONLY)) == (mqd_t)-1)  /* open the decision task queue */
 	{
     	printf("socket()::decision queue open error is %d\n", errno);
     }
-
+#endif
 	if((socket_qdes_log = mq_open(LOG_TASK_MQ_NAME, O_NONBLOCK | O_WRONLY)) == (mqd_t)-1)  /* open the log task queue */
 	{
     	printf("socket()::log queue open error is %d\n", errno);
@@ -71,6 +89,43 @@ void *socketTaskFunc(void *arg)
 
     blockSignals();
 
+    if ((bbg_serv_sd = socket(AF_INET, SOCK_STREAM, 0)) < 0)       /* Create a socket on the client side */
+    {
+        printf("\n Socket creation error \n");
+    }
+
+    memset(&serv_addr, '0', sizeof(serv_addr));
+  
+    /* Initialize the server address */
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORT);
+    if(inet_pton(AF_INET, "10.0.0.169", &serv_addr.sin_addr)<=0) /* convert to network byte order */
+    {
+        printf("\nsocketTask()::Invalid address\n");
+    }
+  
+	/* Set socket to non-blocking */ 
+	if ((flags = fcntl(bbg_serv_sd, F_GETFL, 0)) < 0) 
+	{ 
+	    printf("socketTask():: Error getting the socket flags\n");
+	} 
+	if (fcntl(bbg_serv_sd, F_SETFL, flags | O_NONBLOCK) < 0) 
+	{ 
+	    printf("socketTask():: Error setting the socket flags\n");
+	}
+
+    if (connect(bbg_serv_sd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) /* Connect to the server socket */
+    {
+    	connection = false;
+        printf("\nsocketTask()::Connection Failed \n");
+    }
+	else
+	{
+		connection = true;
+		printf("socketTask():: Connection success\n");
+	}
+
+	printf("Socket(): Before while\n");
 	while(!sigHandle)
 	{
 		recvSig = unblockOnSignal(SOCKET_TASK_ID); 		/* unblock on SIGSOCKET */ 
@@ -80,6 +135,41 @@ void *socketTaskFunc(void *arg)
 			// *TBD* send heartbeat
 			printf("socket()::Received HB req\n");     	 	//Remove  
 			send_heartBeat(SOCKET_TASK_ID,HB_socket, socket_qdes_main);
+			if(connection == true)
+			{
+				ret = read( bbg_serv_sd , buffer, 1024);
+				if(ret == -1)
+        			printf("socket():: Error %d in reading from socket\n", errno); 
+
+        		char *msgField = strtok(buffer, TIVA_DELIMITER);
+			    while(msgField != NULL)
+			    {
+			    	#if 0
+			        printf("%s\n", msgField);
+			        //sscanf(msgField, "%d ", &rec_msg.tivaMsgId);
+    				//printf("The received msgId is %d\n", rec_msg.tivaMsgId);
+		            if(rec_msg.tivaMsgId == TIVA_MSGID_ACCELEROMETER_DATA)
+				    {
+				        printf("First\n");
+				        //sscanf(msgField, "%d %d %ld %d %s", &rec_msg.tivaMsgId, &rec_msg.tivaMsgSrcTask, &rec_msg.tivaMsgPayloadLen, &rec_msg.tivadata, msg.tivaMsgPayload);
+				        //rec_msg.tivaMsgPayload = NULL;
+				        //SEND THE ENTIRE MSG TO MAIN TASK OR LOG					        
+				    }
+				    else if(rec_msg.tivaMsgId == TIVA_MSID_ACC_ALERT)
+				    {
+				        printf("Second\n");
+				        //sscanf(msgField, "%d %d %ld %d %s", &rec_msg.tivaMsgId, &rec_msg.tivaMsgSrcTask, &rec_msg.tivaMsgPayloadLen, &rec_msg.tivadata, rec_msg.tivaMsgPayload);
+				        //rec_msg.tivaMsgPayload = NULL;
+				        printf("Second\n");
+				        //rec_msg.tivadata = 0;
+				    }
+				    #endif
+
+				    msgField = strtok(NULL, TIVA_DELIMITER);
+			    }
+			}
+
+
 		}
 		else
 		{
@@ -99,17 +189,24 @@ void *socketTaskFunc(void *arg)
 				} 
 				else
 				{
+					#if 0
 					if(read_socket_msg_queue->msgId == MSGID_LIGHT_DATA)			/* If light data from socket request */										
 					{
 						sprintf(logPayloadBuff, "Ambience: %s", dummyAmbience); 
-                		send_log_socket(logPayloadBuff, LOG_INFO, socketLog, socketTaskLogMsg);
+                		//send_log_socket(logPayloadBuff, LOG_INFO, socketTaskLogMsg);
 					}
 					else if(read_socket_msg_queue->msgId == MSGID_TIVA_ALERT)	/* If alert data from socket request */										
 					{
 						// *TBD* send_log and to main
 						sprintf(logPayloadBuff, "ERROR from source %d", read_socket_msg_queue->msgSrcTask); 
-                		send_log_socket(logPayloadBuff, LOG_ERROR, socketLog, socketTaskLogMsg);						
-					}				
+                		//send_log_socket(logPayloadBuff, LOG_ERROR, socketTaskLogMsg);						
+					}	
+					#endif	
+					if(read_socket_msg_queue->msgId == MSGID_PROX_NOTIFY)		/* If proximity data */										
+					{		
+						//send it through socket
+						printf("socket()::Received from gesture to send on socket\n");
+					}
 				}
 			}while(n != EAGAIN);
 			n = 0;
@@ -122,7 +219,6 @@ void *socketTaskFunc(void *arg)
 	free(read_socket_msg_queue);
 	free(HB_socket);
 	free(socketTaskLogMsg);
-	free(socketLog);
 
 	/* close all the message queues */
     if (mq_close (socket_qdes_main) == -1) 
@@ -133,10 +229,12 @@ void *socketTaskFunc(void *arg)
     {
         printf("socket()::error no %d closing socket queue\n",errno);
     }
+    #if 0
     if (mq_close (socket_qdes_decision) == -1) 
     {
         printf("socket()::error no %d closing decision queue\n",errno);
     }
+    #endif
     if (mq_close (socket_qdes_log) == -1) 
     {
         printf("socket()::error no %d closing log queue\n",errno);
@@ -165,13 +263,7 @@ void *socketTaskFunc(void *arg)
 	pthread_exit(NULL);
 }
 
-void send_log_socket(char * msg, LOGGER_level socketLogLevel, log_t *socketlogPacket, msgStruct_t *socketMsgPacket)
+void send_log_socket(char * msg, LOGGER_level socketLogLevel, msgStruct_t *socketMsgPacket)
 {
-    char socketLogBuff[200];
-  	socketlogPacket->logLevel = socketLogLevel;
-	socketlogPacket->log_timestamp = time(NULL);
-	
-	sprintf(socketLogBuff, "Log level: %d, Time: %d, Log: %s",  socketlogPacket->logLevel, socketlogPacket->log_timestamp, (char *)socketlogPacket->logPayload);
-	socketlogPacket->logPayload = socketLogBuff;
-	send_log(SOCKET_TASK_ID, socketlogPacket, socketMsgPacket, 	socket_qdes_log);
+    send_log(SOCKET_TASK_ID, socketLogLevel, msg, socketMsgPacket, socket_qdes_log);    
 }

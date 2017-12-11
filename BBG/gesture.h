@@ -17,6 +17,7 @@
 #include "log.h"
 #include "generic.h"
 
+#define PROX_THRESHOLD (0x50)
 /**
  * @brief 
  * 		This function is the pthread function for the Gesture task
@@ -32,6 +33,6 @@ void *gestureTaskFunc(void *arg);
  * @return 
  *      uint8_t
  */
-void send_log_gesture(char * msg, LOGGER_level gestureLogLevel, log_t *gesturelogPacket, msgStruct_t *gestureMsgPacket);
+void send_log_gesture(char * msg, LOGGER_level gestureLogLevel, msgStruct_t *gestureMsgPacket);
 
 #endif

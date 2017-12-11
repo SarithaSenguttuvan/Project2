@@ -42,6 +42,6 @@ struct sigevent mq_mainTask_notify;
  * @return 
  *      uint8_t
  */
-void send_log_main(char * msg, LOGGER_level mainLogLevel, log_t *mainlogPacket, msgStruct_t *mainMsgPacket);
+void send_log_main(char * msg, LOGGER_level mainLogLevel, msgStruct_t *mainMsgPacket);
 
 #endif
