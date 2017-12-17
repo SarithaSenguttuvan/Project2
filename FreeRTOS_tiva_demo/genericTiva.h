@@ -31,8 +31,8 @@
 #define TIVA_LIGHT_TASK_ID 8
 #define TIVA_ACCELEROMETER_TASK_ID 9
 
-#define SET_BIT         (1)
-#define HB_REQ_BIT      (1)
+#define SET_BIT (1)
+#define HB_REQ_BIT (1)
 #define MQ_RECEIVE_BIT  (2)
 
 /* Enum for type of message i.e., Message ID on TIVA */
@@ -59,7 +59,7 @@ typedef struct
     tiva_msgid_t tivaMsgId;
     uint8_t tivaMsgSrcTask;             /* Source Task ID */
     size_t tivaMsgPayloadLen;           /* Msg length  */
-    int tiva_int_data;
+    int32_t tivadata;
     char * tivaMsgPayload;              /* Msg associated data */
 }tiva_msgStruct_t;
 

@@ -64,7 +64,13 @@ void *gestureTaskFunc(void *arg)
 	write_control_value(CONTROL_REG_VAL);			//Setting the PGAIN value. when set to 0 got the pdata as 22, But wen set as 0x0C got the output as 0xF0 and more
 	write_pulse_len_count_value(PULSE_LEN_REG_VAL);  //setting the PPLEN value to 32us
 	write_enable_value(ENABLE_PON_PEN);			// Enable PON and PEN 
-
+#if TEST_GESTURE
+    uint8_t id_value;
+    if(read_id_value(&id_value) == 0xAB)
+    {
+        printf("Test Passed!\n");
+    }
+#endif
 	send_log_gesture("Proximity Sensor initialized", LOG_INIT, read_log_msg_queue);
     blockSignals();
     printf("Gesture(): Before while\n");
@@ -90,6 +96,7 @@ void *gestureTaskFunc(void *arg)
 			pdata_struct->int_data = pdata_value;
 			if((pdata_value) > PROX_THRESHOLD)
 			{
+				printf("Above Threshold\n");
 				if(mq_send(gesture_qdes_socket, (char *)pdata_struct, sizeof(msgStruct_t), 0) == -1) 		/* Send heartbeat to main task */
 				{
 					printf ("Gesture::Error in sending the pdata value, Error no %d, from task\n", errno);

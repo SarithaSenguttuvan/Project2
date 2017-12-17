@@ -19,10 +19,11 @@
 #define I2C_CMD_CODE            (0x80)
 #define I2C_DATA0_REG           (0x0C)
 #define I2C_DATA1_REG           (0x0E)
-#define I2C_ID_REG              (0x0A)
 
 #define ONE_BYTE                (1)
 #define TWO_BYTE                (2)
+
+
 
 /**
  * @brief

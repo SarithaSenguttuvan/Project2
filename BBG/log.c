@@ -109,7 +109,8 @@ void *logTaskFunc(void *arg)
 	printf("log()::Terminating signal received\n");
 
 	/* free all the dynamic memory allocated */	
-	fclose(fp);
+	if(fclose(fp) != 0)
+		printf("log():: Error closing the file\n");
 	free(read_log_msg_queue);
 
 	/* close all the message queues */

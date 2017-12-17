@@ -7,7 +7,9 @@
 
 #ifndef ACCELEROMETERTIVA_H_
 #define ACCELEROMETERTIVA_H_
+
 #include "genericTiva.h"
+
 /**
  * @brief
  *      This function is the task function for the accelerometer task

@@ -1,0 +1,74 @@
+
+Msg Id: 7 | Log level: 5 | Src Task Id: 5 | Payload: Proximity Sensor initialized | Time: 1513053209 | 
+Msg Id: 7 | Log level: 5 | Src Task Id: 1 | Payload: Main task initialized | Time: 1513053211 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053213 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053215 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053217 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053219 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053221 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053223 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053225 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053227 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053229 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053231 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053233 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053235 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053237 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053239 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053241 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053243 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053245 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053247 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053249 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053251 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053253 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053255 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053257 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053259 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053261 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053263 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053265 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 2 | Payload: TivaInitialized | Time: 1513053267 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053267 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053269 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053271 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053273 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053275 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053277 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053279 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 2 | Payload: AmbienceChanged | Time: 1513053281 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053281 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053283 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053285 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053287 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 2 | Payload: AmbienceChanged | Time: 1513053289 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053289 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053291 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053293 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053295 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053297 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053299 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053301 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053303 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053305 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053307 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053309 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053311 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053313 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 2 | Payload: accelerometer | Time: 1513053315 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 2 | Payload: accelerometer | Time: 1513053315 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053315 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053317 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053319 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 5 | Payload: Near Object detected | Time: 1513053319 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053321 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 5 | Payload: Near Object detected | Time: 1513053321 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053323 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 5 | Payload: Near Object detected | Time: 1513053323 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053325 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053327 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053329 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053331 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053333 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053335 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513053337 | 

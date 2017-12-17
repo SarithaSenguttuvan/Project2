@@ -18,6 +18,7 @@
 #include "generic.h"
 
 #define PROX_THRESHOLD (0x50)
+#define TEST_GESTURE   (0)
 /**
  * @brief 
  * 		This function is the pthread function for the Gesture task

@@ -2,7 +2,7 @@
  * lightTiva.c
  *
  *  Created on: Nov 29, 2017
- *      Author: Saritha & Savitha
+ *      Author: Saritha
  */
 
 #include "lightTiva.h"
@@ -15,33 +15,30 @@ extern QueueHandle_t xSocketQueue;
 extern QueueHandle_t xLightQueue;
 extern QueueHandle_t xAccelerometerQueue;
 
+#define LIGHT_TASK_WAIT_TIME   pdMS_TO_TICKS( 2000 )
+
 /* Handles for the tasks create by main(). */
 extern TaskHandle_t xSocketTaskHandle;
-
-#define LIGHT_TASK_WAIT_TIME   pdMS_TO_TICKS( 2000 )
 
 // Function for Light task
 void lightTask(void *pvParameters)
 {
     UARTprintf("\r\n In the Light task");
     tiva_msgStruct_t lightHBMsg;
-    tiva_msgStruct_t lightData;
     uint32_t lightNotificationValue = 0;
-
-
+    tiva_msgStruct_t lightData;
     bool test_ambience = false;
     bool current_ambience = test_ambience;
     uint8_t power_value = 0;
     i2cLightSetup();
-    read_data(I2C_ID_REG, &power_value, ONE_BYTE);     /* Read and verify the control register value */
-    read_data(I2C_CONTROL_REG, &power_value, ONE_BYTE);
-    write_control_reg(I2C_CONTROL_REG_POWER);   /* Write to the control register for powering the device */
-
+   write_control_reg(I2C_CONTROL_REG_POWER);   /* Write to the control register for powering the device */
+    read_data(I2C_CONTROL_REG, &power_value, ONE_BYTE);     /* Read and verify the control register value */
 
     for (;;)
     {
         if(xTaskNotifyWait( 0, ULONG_MAX, &lightNotificationValue, portMAX_DELAY) != pdFALSE)
         {
+            UARTprintf("\r\n light():: !!!!!!!!!Received Timer notification");
             if((lightNotificationValue & HB_REQ_BIT) == SET_BIT)
             {
                 sendHB(TIVA_LIGHT_TASK_ID, &lightHBMsg);
@@ -57,13 +54,28 @@ void lightTask(void *pvParameters)
                     if((xTaskNotify(xSocketTaskHandle, 2, eSetBits) != pdPASS))
                             return;
                     current_ambience = test_ambience;
-                }
-#if 1
-                if(test_ambience == false)
-                    GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, 1);       /* If dark, LED on */
-                else
-                    GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, 0);       /* If light, LED off */
+#if LIGHT_DATA_TEST
+                  uint16_t data0 = 2;
+                  uint16_t data1 = 1;
+                  float results_obtained = 0.0;
+                  float actual_value = 0.060800;
+                  lux_calculate(data0, data1,&results_obtained);
+                  if((results_obtained-actual_value) == 0)
+                  {
+                      UARTprintf("\r\n Test Passed");
+                  }
 #endif
+                }
+                if(test_ambience == false)
+                {
+                    //LEDWrite(0x0F, 0x04);
+                    GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, 1);       /* If dark, LED on */
+                }
+                else
+                {
+                    //LEDWrite(0x0F, 0x00);
+                    GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, 0);       /* If light, LED off */
+                }
             }
         }
         else
@@ -86,5 +98,3 @@ void send_socket_light(char * msg, tiva_msgStruct_t *socketPacket)
         UARTprintf("\r\nLight:: Sent to queue");
     }
 }
-
-

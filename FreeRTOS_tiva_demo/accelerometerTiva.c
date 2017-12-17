@@ -23,11 +23,12 @@ extern TaskHandle_t xSocketTaskHandle;
 void accelerometerTask(void *pvParameters)
 {
     tiva_msgStruct_t accelerometerHBMsg;
-    tiva_msgStruct_t accData;
     uint32_t accelerometerNotificationValue = 0;
+    tiva_msgStruct_t accData;
     uint8_t acc_read_data = 0;
     UARTprintf("\r\n In the accelerometer task");
 
+#if 1
     i2cAccSetup();
     read_data_acc(I2C_ACC_ID_REG, &acc_read_data, ONE_BYTE);
     write_control2_reg_acc(I2C_ACC_CONTROL_REG2_VAL);
@@ -42,11 +43,12 @@ void accelerometerTask(void *pvParameters)
     read_data_acc(I2C_ACC_CONTROL_REG4_VAL, &acc_read_data, ONE_BYTE);
     write_control1_reg_acc(I2C_ACC_CONTROL_REG1_VAL);
     read_data_acc(I2C_ACC_CONTROL_REG1_VAL, &acc_read_data, ONE_BYTE);
-
+#endif
     for (;;)
     {
         if(xTaskNotifyWait( 0, ULONG_MAX, &accelerometerNotificationValue, portMAX_DELAY) != pdFALSE)
         {
+            UARTprintf("\r\n acc():: !!!!!!!!!Received Timer notification");
             if((accelerometerNotificationValue & HB_REQ_BIT) == SET_BIT)
             {
                 sendHB(TIVA_ACCELEROMETER_TASK_ID, &accelerometerHBMsg);
@@ -59,17 +61,9 @@ void accelerometerTask(void *pvParameters)
                 {
                     send_socket_acc("DoorOpened$",&accData);
                     if((xTaskNotify(xSocketTaskHandle, 2, eSetBits) != pdPASS))
-                                            return;
-                }
-/*
-                //read data from a register
-                //if (acc_read())
-                {
-                    send_socket_acc("DoorOpened$",&accData);
-                    if((xTaskNotify(xSocketTaskHandle, 2, eSetBits) != pdPASS))
                         return;
                 }
-*/
+
             }
         }
         else
@@ -78,6 +72,7 @@ void accelerometerTask(void *pvParameters)
         }
     }
 }
+
 
 void send_socket_acc(char * msg, tiva_msgStruct_t *socketPacket)
 {
@@ -92,4 +87,5 @@ void send_socket_acc(char * msg, tiva_msgStruct_t *socketPacket)
         UARTprintf("\r\n Accelerometer:: Sent to queue");
     }
 }
+
 

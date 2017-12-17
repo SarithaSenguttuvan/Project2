@@ -17,6 +17,9 @@
 #include "socket.h"
 #include "log.h"
 #include "gesture.h"
+#include <errno.h>
+
+#define BUFFER_LENGTH 256 
 
 bool sigHandle = false;
 const char *file_name;
@@ -31,9 +34,38 @@ struct mq_attr log_queue_attr;
 /* Defining my owm handler to handle the system signals */
 void my_handler(int signum)
 {
-    if((signum == SIGINT) || (signum == SIGTSTP) )               /* If SIGTERM signal */
+    if((signum == SIGINT))               /* If SIGTERM signal */
     {
-        printf("Received SIGTERM!\n");
+        int ret, file_descriptor_led;   
+        int query_read;
+        int LED_period ;
+        int LED_dutyCycle;
+        int LED_Toggle;
+        char stringToSend[BUFFER_LENGTH];
+#if 0
+        file_descriptor_led = open("/dev/LED_CharDriver", O_RDWR);             // Open the device with read/write access
+        if (file_descriptor_led < 0)
+        {
+          printf("unable to open the device. Error no: %d\n", errno);
+          
+          return;
+        }
+
+         /*LED Code */
+        LED_period = 5000;
+        LED_dutyCycle = 2000; 
+        LED_Toggle = true;
+        query_read = 2;
+        sprintf(stringToSend, "%d %d %d %d", LED_period, LED_dutyCycle, LED_Toggle, query_read); 
+        ret = write(file_descriptor_led, stringToSend, strlen(stringToSend));       // Write the string to the kernel module
+        if (ret < 0)
+        {
+            perror("Unable to write to the device.\n");
+            return;
+        }
+        close(file_descriptor_led);
+#endif
+        printf("Received SIGINT!\n");
         sigHandle = true;
         pthread_kill(pthread_self(), SIGTIMER);
         pthread_kill(socketTask, SIGHBSOCKET);
@@ -81,11 +113,26 @@ int main(int argc, char const *argv[])
 	msgStruct_t *mainTaskLogMsg = (msgStruct_t *)malloc(sizeof(msgStruct_t)); 
 
     char logPayloadBuff[200];
-    
+#if 0    
+    /* LED code */
+    int ret, file_descriptor_led;   
+    int query_read;
+    int LED_period ;
+    int LED_dutyCycle;
+    int LED_Toggle;
+    char stringToSend[BUFFER_LENGTH];
+
+    file_descriptor_led = open("/dev/LED_CharDriver", O_RDWR);             // Open the device with read/write access
+    if (file_descriptor_led < 0)
+    {
+      printf("unable to open the device. Error no: %d\n", errno);
+      
+      return errno;
+    }
+#endif    
 	struct sigaction my_sig;		/* Registering signal for Terminating signals */
     my_sig.sa_handler = my_handler; /* Assigning the signal handler function */
-    sigaction(SIGINT, &my_sig, NULL);  /* Registering the signals */ 
-    sigaction(SIGTSTP, &my_sig, NULL);  /* Registering the signals */     
+    sigaction(SIGINT, &my_sig, NULL);  /* Registering the signals */    
 
     
     /* Timer create */ 
@@ -224,6 +271,22 @@ int main(int argc, char const *argv[])
                     printf("HB not received gesture temp task\n");
                 }
                 printf("main()::Received faulty HBs\n"); 	//Remove
+
+#if 0
+                 /*LED Code */
+                LED_period = 5000;
+                LED_dutyCycle = 2000; 
+                LED_Toggle = true;
+                query_read = 2;
+                sprintf(stringToSend, "%d %d %d %d", LED_period, LED_dutyCycle, LED_Toggle, query_read); 
+                ret = write(file_descriptor_led, stringToSend, strlen(stringToSend));       // Write the string to the kernel module
+                if (ret < 0)
+                {
+                    perror("Unable to write to the device.\n");
+                    return errno;
+                }
+#endif
+
 				sprintf(logPayloadBuff, "ERROR from source %d", taskID); 
                 send_log_main(logPayloadBuff, LOG_ERROR, mainTaskLogMsg);
                 //*TBD* wait for log to be sent
@@ -260,15 +323,18 @@ int main(int argc, char const *argv[])
 					}
 					else if(read_queue->msgId == MSGID_ERROR)
 					{
-						printf("main::Received error message from source ID %d\n", read_queue->msgSrcTask);
+						//printf("main::Received error message from source ID %d\n", read_queue->msgSrcTask);
 						sprintf(logPayloadBuff, "ERROR from source %d", read_queue->msgSrcTask); 
-                        send_log_main(logPayloadBuff, LOG_ERROR, mainTaskLogMsg);
-						raise(SIGINT); /* TBD LED */ 
+                        			//send_log_main(logPayloadBuff, LOG_ERROR, mainTaskLogMsg);
+
+						//raise(SIGINT); /* TBD LED */ 
 					}
                     else if(read_queue->msgId == TIVA_MSGID_ERROR)
                     {
                         printf("main::Received error from TIVA\n");
                         //LED glow
+                        sprintf(logPayloadBuff, "ERROR from TIVA ");
+                        send_log_main(logPayloadBuff, LOG_ERROR, mainTaskLogMsg);
                     }                    								
 				}
 			}while(n != EAGAIN);
@@ -315,19 +381,20 @@ int main(int argc, char const *argv[])
 	/* Unlink the message queues */    
     if (mq_unlink (MAIN_TASK_MQ_NAME) == -1) 
     {
-        printf("main(): Error unlinking main queue %d\n", errno);
+        //printf("main(): Error unlinking main queue %d\n", errno);
     }  
 
     if (mq_unlink (SOCKET_TASK_MQ_NAME) == -1) 
     {
-        printf("main(): Error unlinking socket queue %d\n", errno);
+        //printf("main(): Error unlinking socket queue %d\n", errno);
     }  
 
     if (mq_unlink (LOG_TASK_MQ_NAME) == -1) 
     {
-        printf("ERROR No: %d Unable to unlink the log queue \n", errno);
+       // printf("ERROR No: %d Unable to unlink the log queue \n", errno);
     }
        
+
     printf("EXITED NORMALLY\n"); 
 	return 0;
 }

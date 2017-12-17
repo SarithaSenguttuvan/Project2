@@ -7,6 +7,7 @@
 
 #ifndef LIGHTTIVA_H_
 #define LIGHTTIVA_H_
+
 #include "genericTiva.h"
 
 /**
@@ -17,8 +18,7 @@
  */
 void lightTask(void *pvParameters);
 
+#define LIGHT_DATA_TEST  (0)
 void send_socket_light(char * msg, tiva_msgStruct_t *socketPacket);
-
-
 
 #endif /* LIGHTTIVA_H_ */

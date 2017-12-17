@@ -17,12 +17,14 @@
 #include "lightTiva.h"
 #include "accelerometerTiva.h"
 #include "I2C_LightTiva.h"
+#include "sckt.h"
 
 /* Handles for the tasks create by main(). */
 TaskHandle_t xMainTaskHandle = NULL;
 TaskHandle_t xSocketTaskHandle = NULL;
 TaskHandle_t xLightTaskHandle = NULL;
 TaskHandle_t xAccelerometerTaskHandle = NULL;
+TaskHandle_t xScktHandle = NULL;
 //TaskHandle_t xI2cLightTaskHandle = NULL;
 
 uint32_t output_clock_rate_hz;
@@ -42,31 +44,34 @@ int main(void)
     // Initialize the GPIO pins for the Launchpad
     PinoutSet(false, false);
 
-    UARTStdioConfig(0, 57600, SYSTEM_CLOCK);
+    UARTStdioConfig(0, 115200, SYSTEM_CLOCK);
 
     UARTprintf("\r\n Starting the execution");
 
     // Create tasks
-    /*
-    xStatus = xTaskCreate(I2C_Light, (const portCHAR *)"i2cLight", configMINIMAL_STACK_SIZE, NULL, 6, &xI2cLightTaskHandle);
-    if(xStatus != pdPASS)
-        return 0;
-    */
-
-#if 1
-    xStatus = xTaskCreate(socketTask, (const portCHAR *)"socket", configMINIMAL_STACK_SIZE, NULL, 6, &xSocketTaskHandle);
-    if(xStatus != pdPASS)
-        return 0;
-    xStatus = xTaskCreate(lightTask, (const portCHAR *)"light", configMINIMAL_STACK_SIZE, NULL, 5, &xLightTaskHandle);
-    if(xStatus != pdPASS)
-        return 0;
-    xStatus = xTaskCreate(accelerometerTask, (const portCHAR *)"accelerometer", configMINIMAL_STACK_SIZE, NULL, 4, &xAccelerometerTaskHandle);
+#if 0
+    xStatus = xTaskCreate(clientSckt_task, (const portCHAR *)"sckt", configMINIMAL_STACK_SIZE, NULL, 3, &xScktHandle);
     if(xStatus != pdPASS)
         return 0;
 #endif
+
+#if 1
+    xStatus = xTaskCreate(lightTask, (const portCHAR *)"light", configMINIMAL_STACK_SIZE, NULL, 6, &xLightTaskHandle);
+    if(xStatus != pdPASS)
+        return 0;
+
+    xStatus = xTaskCreate(accelerometerTask, (const portCHAR *)"accelerometer", configMINIMAL_STACK_SIZE, NULL, 5, &xAccelerometerTaskHandle);
+    if(xStatus != pdPASS)
+        return 0;
+
+    xStatus = xTaskCreate(socketTask, (const portCHAR *)"socket", configMINIMAL_STACK_SIZE, NULL, 4, &xSocketTaskHandle);
+    if(xStatus != pdPASS)
+        return 0;
+
     xStatus = xTaskCreate(mainTask, (const portCHAR *)"main", configMINIMAL_STACK_SIZE, NULL, 3, &xMainTaskHandle);
     if(xStatus != pdPASS)
         return 0;
+#endif
     //vTaskDelay(1000);
     vTaskStartScheduler();
 
@@ -121,5 +126,6 @@ void __error__(char *pcFilename, uint32_t ui32Line)
     // Place a breakpoint here to capture errors until logging routine is finished
     while (1)
     {
+
     }
 }

@@ -15,6 +15,11 @@
 #define INCLUDES_MAIN_TASK_H_
 
 #include <pthread.h>
+#include<errno.h>
+#include<fcntl.h>
+#include<string.h>
+#include<unistd.h>
+#include <stdbool.h>
 #include "log.h"
 #include "generic.h"
 

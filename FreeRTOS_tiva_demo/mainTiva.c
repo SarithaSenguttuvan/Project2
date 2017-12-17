@@ -21,11 +21,14 @@ extern TaskHandle_t xMainTaskHandle;
 extern TaskHandle_t xSocketTaskHandle;
 extern TaskHandle_t xLightTaskHandle;
 extern TaskHandle_t xAccelerometerTaskHandle;
+//extern TaskHandle_t xScktHandle;
 //extern TaskHandle_t xI2cLightTaskHandle;
 
 bool socketFlag = true;
 bool lightFlag = true;
 bool accelerometerFlag = true;
+
+bool TimerFlag = false;
 
 // Function for main task
 void mainTask(void *pvParameters)
@@ -36,6 +39,7 @@ void mainTask(void *pvParameters)
     BaseType_t xTimerStarted;
     size_t msgCount = 0;
     tiva_msgStruct_t mainTaskData;
+
     UARTprintf("\r\n In the main task");
 
     const TickType_t xMainTicksToWait = mainAUTO_RELOAD_TIMER_PERIOD;
@@ -57,6 +61,7 @@ void mainTask(void *pvParameters)
 
     if( xMyTimer != NULL )
     {
+        while(!TimerFlag);
         xTimerStarted = xTimerStart( xMyTimer, 0 );
         if(xTimerStarted == pdPASS )
             UARTprintf("\r\n main():: Timer Started");
@@ -76,11 +81,11 @@ void mainTask(void *pvParameters)
             {
                 xMainStatus = xQueueReceive( xMainQueue, (tiva_msgStruct_t *)&mainReceivedmsg, xMainTicksToWait );
                 if( xMainStatus == pdPASS )
-                    //*TBD* send logs
-                    UARTprintf("\r\n main():: @@@@@@@@@@xQueueReceive Success");
+                    //send logs
+                    UARTprintf("\r\n main():: xQueueReceive Success");
                 else
-                    //*TBD* send logs
-                    UARTprintf("\r\n main():: ##########xQueueReceive Failure");
+                    // send logs
+                    UARTprintf("\r\n main():: xQueueReceive Failure");
                 if(mainReceivedmsg.tivaMsgId == TIVA_MSGID_HB_RESP)
                 {
                     if(mainReceivedmsg.tivaMsgSrcTask == TIVA_SOCKET_TASK_ID)
@@ -123,37 +128,38 @@ static void myTimerCallBack( TimerHandle_t xTimer )
     UARTprintf("\r\n $$$$$$$$$Gave Notify signals from Timer callback");
     if(count == 2)
     {
-    if((socketFlag == true) && (lightFlag == true) && (accelerometerFlag == true))
-    {
-        UARTprintf("\r\n %%%%%%Received HeartBeats");
-        socketFlag = false;
-        lightFlag = false;
-        accelerometerFlag = false;
-    }
-    else
-    {
-        if(socketFlag == false)
+        if((socketFlag == true) && (lightFlag == true) && (accelerometerFlag == true))
         {
-            send_socket_main("SCK_HB_FAIL$",&mainData,TIVA_MSGID_ERROR, true);
-            UARTprintf("\r\n ^^^^^^^^^^Failed HeartBeats from socket task");
-            //*TBD* send error logs
+            UARTprintf("\r\n Received HeartBeats");
+            socketFlag = false;
+            lightFlag = false;
+            accelerometerFlag = false;
         }
-        if(lightFlag == false)
+        else
         {
-            send_socket_main("LIGHT_HB_FAIL$",&mainData,TIVA_MSGID_ERROR, true);
-            UARTprintf("\r\n &&&&Failed HeartBeats from Light task");
+            if(socketFlag == false)
+            {
+                send_socket_main("SCK_HB_FAIL$",&mainData,TIVA_MSGID_ERROR, true);
+                UARTprintf("\r\n Failed HeartBeats from socket task");
+                //*TBD* send error logs
+            }
+            if(lightFlag == false)
+            {
+                send_socket_main("LIGHT_HB_FAIL$",&mainData,TIVA_MSGID_ERROR, true);
+                UARTprintf("\r\n Failed HeartBeats from Light task");
+            }
+            if(accelerometerFlag == false)
+            {
+                send_socket_main("ACC_HB_FAIL$",&mainData,TIVA_MSGID_ERROR, true);
+                UARTprintf("\r\n Failed HeartBeats from accelerometer task");
+            }
         }
-        if(accelerometerFlag == false)
-        {
-            send_socket_main("ACC_HB_FAIL$",&mainData,TIVA_MSGID_ERROR, true);
-            UARTprintf("\r\n ****Failed HeartBeats from accelerometer task");
-            //*TBD* send error logs
-        }
-        //Send Socket log
+        count = 0;
+
         if((xTaskNotifyFromISR(xSocketTaskHandle, 2, eSetBits, &xHigherPriorityTaskWoken) != pdPASS))
             return;
-    }
-    count = 0;
+        if((xTaskNotifyFromISR(xSocketTaskHandle, 4, eSetBits, &xHigherPriorityTaskWoken) != pdPASS))
+            return;
     }
 #endif
 }

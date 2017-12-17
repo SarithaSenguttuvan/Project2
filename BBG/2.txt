@@ -1,0 +1,157 @@
+main::Timer Created
+main::Main queue opened
+main::socket queue opened
+main::Log queue opened
+generic::Blocked Signals
+Gesture:: Configured I2C
+generic::Blocked Signals
+Log(): Before while
+unblockSignals::LOG
+send_log::Log message Sent from task 5
+generic::Blocked Signals
+Gesture(): Before while
+unblockSignals::Gesture
+log():: Writing to the file
+log()::mq_receive error is 11
+unblockSignals::LOG
+generic::Blocked Signals
+error in binding socket
+Socket(): Before while
+unblockSignals::Socket
+send_log::Log message Sent from task 1
+unblockSignals::Main
+log():: Writing to the file
+log()::mq_receive error is 11
+unblockSignals::LOG
+main:::Received Signal after Sigwait:55
+main()::Received SIGTIMER
+main()::Received HBs
+main()::After received HBs
+send_log::Log message Sent from task 1
+unblockSignals::Main
+gesture()::Received HB req
+send_heartBeat::In function send HB
+main:::Received Signal after Sigwait:50
+main()::Received SIGMAIN
+main::HB MSG from Source ID is 5
+main::mq_receive error no is 11
+unblockSignals::Main
+send_heartBeat::HB Sent 5
+log()::Received HB req
+send_heartBeat::In function send HB
+main:::Received Signal after Sigwait:50
+main()::Received SIGMAIN
+main::HB MSG from Source ID is 4
+main::mq_receive error no is 11
+unblockSignals::Main
+send_heartBeat::HB Sent 4
+unblockSignals::LOG
+log():: Writing to the file
+log()::mq_receive error is 11
+unblockSignals::LOG
+socket()::Received HB req
+send_heartBeat::In function send HB
+main:::Received Signal after Sigwait:50
+main()::Received SIGMAIN
+main::HB MSG from Source ID is 2
+main::mq_receive error no is 11
+unblockSignals::Main
+send_heartBeat::HB Sent 2
+*********************************Waiting1
+The pdata_value reg value is ff
+Above Threshold
+Gesture::Sent pdata value
+send_log::Log message Sent from task 5
+unblockSignals::Gesture
+log():: Writing to the file
+log()::mq_receive error is 11
+unblockSignals::LOG
+No incoming connections received
+unblockSignals::Socket
+socket()::Received from gesture to send on socket
+socket():: $$$$$$$$$$$$$$$$$$Error
+socket()::mq_receive error is 11
+unblockSignals::Socket
+main:::Received Signal after Sigwait:55
+main()::Received SIGTIMER
+main()::Received HBs
+main()::After received HBs
+send_log::Log message Sent from task 1
+unblockSignals::Main
+gesture()::Received HB req
+send_heartBeat::In function send HB
+main:::Received Signal after Sigwait:50
+main()::Received SIGMAIN
+main::HB MSG from Source ID is 5
+main::mq_receive error no is 11
+unblockSignals::Main
+send_heartBeat::HB Sent 5
+log()::Received HB req
+send_heartBeat::In function send HB
+main:::Received Signal after Sigwait:50
+main()::Received SIGMAIN
+main::HB MSG from Source ID is 4
+main::mq_receive error no is 11
+unblockSignals::Main
+send_heartBeat::HB Sent 4
+unblockSignals::LOG
+log():: Writing to the file
+log()::mq_receive error is 11
+unblockSignals::LOG
+socket()::Received HB req
+send_heartBeat::In function send HB
+main:::Received Signal after Sigwait:50
+main()::Received SIGMAIN
+main::HB MSG from Source ID is 2
+main::mq_receive error no is 11
+unblockSignals::Main
+send_heartBeat::HB Sent 2
+*********************************Waiting1
+No incoming connections received
+unblockSignals::Socket
+The pdata_value reg value is ff
+Above Threshold
+Gesture::Sent pdata value
+send_log::Log message Sent from task 5
+unblockSignals::Gesture
+log():: Writing to the file
+log()::mq_receive error is 11
+unblockSignals::LOG
+socket()::Received from gesture to send on socket
+socket():: $$$$$$$$$$$$$$$$$$Error
+socket()::mq_receive error is 11
+unblockSignals::Socket
+Received SIGINT!
+main:::Received Signal after Sigwait:55
+main()::Received SIGTIMER
+main()::Received HBs
+main()::After received HBs
+send_log::Log message Sent from task 1
+main()::Terminating signal received
+gesture()::Received HB req
+send_heartBeat::In function send HB
+send_heartBeat::HB Sent 5
+log()::Received HB req
+send_heartBeat::In function send HB
+send_heartBeat::HB Sent 4
+log()::Terminating signal received
+The pdata_value reg value is ff
+Above Threshold
+Gesture::Sent pdata value
+send_log::Log message Sent from task 5
+gesture()::Terminating signal received
+log()::error no 2 unlinking main queue
+socket()::Received HB req
+send_heartBeat::In function send HB
+send_heartBeat::HB Sent 2
+*********************************Waiting1
+No incoming connections received
+socket()::Terminating signal received
+socket()::error no 2 unlinking main queue
+socket()::error no 2 unlinking socket queue
+socket()::error no 2 unlinking decision queue
+socket()::error no 2 unlinking log queue
+Socket task done
+Log task done
+Gesture task done
+EXITED NORMALLY

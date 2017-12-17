@@ -388,6 +388,7 @@ void xPortSysTickHandler( void )
 		}
 	}
 	portCLEAR_INTERRUPT_MASK_FROM_ISR( 0 );
+	lwIPTimer(10);
 }
 /*-----------------------------------------------------------*/
 

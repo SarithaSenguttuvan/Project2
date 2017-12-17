@@ -1,0 +1,7 @@
+
+Msg Id: 7 | Log level: 5 | Src Task Id: 5 | Payload: Proximity Sensor initialized | Time: 1513477635 | 
+Msg Id: 7 | Log level: 5 | Src Task Id: 1 | Payload: Main task initialized | Time: 1513477637 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513477639 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 5 | Payload: Near Object detected | Time: 1513477639 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 1 | Payload: Received Heartbeats | Time: 1513477641 | 
+Msg Id: 7 | Log level: 6 | Src Task Id: 5 | Payload: Near Object detected | Time: 1513477641 | 

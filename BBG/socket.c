@@ -34,12 +34,14 @@ void *socketTaskFunc(void *arg)
 	int32_t recvSig = 0;
 
 	/* Sockets */ 
-	int bbg_serv_sd = 0;
+	//int bbg_serv_sd;
+	int bbg_serv_fd, conn_socket;
 	int ret = 0;
-	struct sockaddr_in serv_addr;
+	int socket_numbytes = 0;
+	struct sockaddr_in serv_addr, bbg_addr, usr_add;
 	int flags = 0;
 	bool connection = false;
-	char buffer[1024] = "LightSensorInitialized$";
+	char buffer[1024] = {0};
 
 	mqd_t socket_qdes_main;
 	mqd_t socket_qdes_socket;
@@ -90,42 +92,37 @@ void *socketTaskFunc(void *arg)
 
     blockSignals();
 
-    if ((bbg_serv_sd = socket(AF_INET, SOCK_STREAM, 0)) < 0)       /* Create a socket on the client side */
+    if ((bbg_serv_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)       /* Create a socket on the client side */
     {
         printf("\n Socket creation error \n");
     }
 
-    memset(&serv_addr, '0', sizeof(serv_addr));
-  
-    /* Initialize the server address */
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT);
-    if(inet_pton(AF_INET, "10.0.0.169", &serv_addr.sin_addr)<=0) /* convert to network byte order */
-    {
-        printf("\nsocketTask()::Invalid address\n");
-    }
-  
-	/* Set socket to non-blocking */ 
-	if ((flags = fcntl(bbg_serv_sd, F_GETFL, 0)) < 0) 
-	{ 
-	    printf("socketTask():: Error getting the socket flags\n");
-	} 
-	if (fcntl(bbg_serv_sd, F_SETFL, flags | O_NONBLOCK) < 0) 
-	{ 
-	    printf("socketTask():: Error setting the socket flags\n");
-	}
+	bbg_addr.sin_family = AF_INET;
+	bbg_addr.sin_addr.s_addr = INADDR_ANY;
+	bbg_addr.sin_port = htons( PORT );
 
-    if (connect(bbg_serv_sd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) /* Connect to the server socket */
-    {
-    	connection = false;
-        printf("\nsocketTask()::Connection Failed \n");
-    }
-	else
+	/* Bind address */
+	if (bind(bbg_serv_fd, (struct sockaddr *)&bbg_addr, sizeof(bbg_addr))<0) 
 	{
-		connection = true;
-		printf("socketTask():: Connection success\n");
+	    printf("error in binding socket\n");
 	}
 
+	/* Listening on socket */
+	if (listen(bbg_serv_fd, 7) < 0)       
+	{
+	    printf("error in listening socket\n");
+	}
+#if 1
+	 /* Set socket to non-blocking */ 
+	if ((flags = fcntl(bbg_serv_fd, F_GETFL, 0)) < 0) 
+	{ 
+	    printf("Socket():: Error getting the socket flags\n");
+	} 
+	if (fcntl(bbg_serv_fd, F_SETFL, flags | O_NONBLOCK) < 0) 
+	{ 
+	    printf("Socket():: Error setting the socket flags\n");
+	}
+#endif
 	printf("Socket(): Before while\n");
 	while(!sigHandle)
 	{
@@ -136,7 +133,8 @@ void *socketTaskFunc(void *arg)
 			// *TBD* send heartbeat
 			printf("socket()::Received HB req\n");     	 	//Remove  
 			send_heartBeat(SOCKET_TASK_ID,HB_socket, socket_qdes_main);
-			connection = true; //Remove
+			//connection = true; //Remove
+			#if 0
 			if(connection == true)
 			{
 				//ret = read( bbg_serv_sd , buffer, 1024);	//Remove comment
@@ -178,6 +176,7 @@ void *socketTaskFunc(void *arg)
 			    	{
 			    		//send acc alert
 			    		makeMsg(TivaMsg, TIVA_MSGID_ACC_ALERT, "Door opened", LOG_WARN);
+					printf("Accelerometer*******\n");
 			    		send_log_socket("Door opened", LOG_WARN, socketTaskLogMsg);			    		
 			    	}
 			    	else if(!(strcmp(msgField, "LightSensorInitialized")))
@@ -207,6 +206,68 @@ void *socketTaskFunc(void *arg)
 				    msgField = strtok(NULL, TIVA_DELIMITER);
 			    }
 			}
+			#endif
+			if(!connection)
+			{
+				printf("*********************************Waiting1\n");
+				conn_socket = accept(bbg_serv_fd, (struct sockaddr *)&usr_add, (socklen_t*)&usr_add); //returns 
+				if(conn_socket < 0) 
+				{
+					if (errno == EAGAIN) 
+					{
+					    connection = false;
+					    printf("No incoming connections received\n");
+					}
+					else
+					{
+						printf("Socket():: Error in socket accept\n");
+					}
+				}
+				else
+				{
+					connection = true;
+					printf("*********************************Waiting2 connection made\n");
+				}			
+
+			}
+			else
+			{
+				printf("*********************************Waiting3 Reception\n");
+				socket_numbytes = recv(conn_socket, buffer , 1024 , MSG_DONTWAIT);
+				printf("*********************************Waiting4 After Reception\n");
+
+				char *msgField = strtok(buffer, TIVA_DELIMITER);
+
+
+		        if(socket_numbytes < 0) //Error
+		        {
+		        	printf("*********************************Waiting6 Error\n");
+		            if(errno == EAGAIN)
+		            {
+		                printf("Connection is alive! No msg received\n");
+		            }
+		            else
+		            {
+		                perror("Recv error\n");    
+		            }
+		        }
+		        else if(socket_numbytes == 0)
+		        {
+		            printf("*********************************Waiting7 0\n");
+		            printf("Connection Invalid\n");
+		            //connection = false;
+		        }
+		        else 
+		        {
+					printf("*********************************Waiting5 Reading\n");
+					while(msgField != NULL)
+				    {
+		            	printf("%s@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n",msgField );
+		            	send_log_socket(buffer , LOG_INFO, socketTaskLogMsg);
+		            	msgField = strtok(NULL, TIVA_DELIMITER);
+				    }       	
+		        }
+			}
 		}
 		else
 		{
@@ -225,24 +286,13 @@ void *socketTaskFunc(void *arg)
 					printf("socket()::mq_receive error is %d\n", errno);
 				} 
 				else
-				{
-					#if 0
-					if(read_socket_msg_queue->msgId == MSGID_LIGHT_DATA)			/* If light data from socket request */										
-					{
-						sprintf(logPayloadBuff, "Ambience: %s", dummyAmbience); 
-                		//send_log_socket(logPayloadBuff, LOG_INFO, socketTaskLogMsg);
-					}
-					else if(read_socket_msg_queue->msgId == MSGID_TIVA_ALERT)	/* If alert data from socket request */										
-					{
-						// *TBD* send_log and to main
-						sprintf(logPayloadBuff, "ERROR from source %d", read_socket_msg_queue->msgSrcTask); 
-                		//send_log_socket(logPayloadBuff, LOG_ERROR, socketTaskLogMsg);						
-					}	
-					#endif	
+				{	
 					if(read_socket_msg_queue->msgId == MSGID_PROX_NOTIFY)		/* If proximity data */										
 					{		
 						//send it through socket
 						printf("socket()::Received from gesture to send on socket\n");
+						if((send(conn_socket , "bbgData" , strlen("bbgData"), 0 )) == -1)
+							printf("socket():: $$$$$$$$$$$$$$$$$$Error\n"); 
 					}
 				}
 			}while(n != EAGAIN);
@@ -266,12 +316,6 @@ void *socketTaskFunc(void *arg)
     {
         printf("socket()::error no %d closing socket queue\n",errno);
     }
-    #if 0
-    if (mq_close (socket_qdes_decision) == -1) 
-    {
-        printf("socket()::error no %d closing decision queue\n",errno);
-    }
-    #endif
     if (mq_close (socket_qdes_log) == -1) 
     {
         printf("socket()::error no %d closing log queue\n",errno);
@@ -296,6 +340,7 @@ void *socketTaskFunc(void *arg)
     {
         printf("socket()::error no %d unlinking log queue\n",errno);
     } 
+//close(conn_socket);
 	
 	pthread_exit(NULL);
 }

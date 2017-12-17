@@ -21,7 +21,7 @@ int8_t i2cLightSetup()
     while(!SysCtlPeripheralReady(SYSCTL_PERIPH_GPIOB));
 
     GPIOPinConfigure(GPIO_PB2_I2C0SCL);                 /* PB2 SCL */
-    GPIOPinConfigure(GPIO_PB3_I2C0SDA);                 /* PB2 SDA */
+    GPIOPinConfigure(GPIO_PB3_I2C0SDA);                 /* PB3 SDA */
 
     GPIOPinTypeI2CSCL(GPIO_PORTB_BASE, GPIO_PIN_2);
     GPIOPinTypeI2C(GPIO_PORTB_BASE, GPIO_PIN_3);
